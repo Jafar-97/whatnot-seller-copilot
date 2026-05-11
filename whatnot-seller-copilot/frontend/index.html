@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seller Copilot — Built for Whatnot</title>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08070C;
+    --surface: #0F0E15;
+    --surface2: #161422;
+    --border: rgba(255,255,255,0.07);
+    --border-bright: rgba(255,255,255,0.14);
+    --accent: #FF3B5C;
+    --accent2: #FF6B35;
+    --accent3: #FFD93D;
+    --green: #06D6A0;
+    --blue: #4361EE;
+    --text: #F0EEF8;
+    --muted: #6B6880;
+    --muted2: #9896A8;
+    --font-display: 'Anybody', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(255,59,92,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(67,97,238,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255,107,53,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grid overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== LAYOUT ===== */
+  .shell {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    padding: 32px 0 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+
+  .logo span {
+    color: var(--accent);
+  }
+
+  .tagline {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(6,214,160,0.08);
+    border: 1px solid rgba(6,214,160,0.2);
+    border-radius: 100px;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.05em;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse-green 2s infinite;
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(6,214,160,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(6,214,160,0); }
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    padding: 64px 0 48px;
+    max-width: 760px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 24px;
+    padding-left: 12px;
+    border-left: 2px solid rgba(255,59,92,0.5);
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    -webkit-text-stroke: 1px var(--accent);
+    color: transparent;
+  }
+
+  .hero-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--muted2);
+    max-width: 560px;
+    margin-bottom: 32px;
+  }
+
+  /* ===== PROBLEM / SOLUTION STACK ===== */
+  .ps-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ps-row {
+    display: grid;
+    grid-template-columns: 1fr 32px 1fr;
+    gap: 0;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .ps-row:hover { border-color: var(--border-bright); }
+
+  .ps-problem {
+    padding: 24px 24px 24px 24px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+  }
+
+  .ps-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 14px;
+    border-right: 1px solid var(--border);
+  }
+
+  .ps-solution {
+    padding: 24px;
+    background: var(--surface2);
+  }
+
+  .ps-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .problem-label { color: var(--accent); }
+  .solution-label { color: var(--green); }
+
+  .ps-num {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--muted);
+  }
+
+  .ps-quote {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--muted2);
+    border-left: 2px solid rgba(255,59,92,0.4);
+    padding-left: 14px;
+    margin-bottom: 14px;
+    font-style: normal;
+  }
+
+  .ps-quote mark {
+    background: rgba(255,59,92,0.15);
+    color: var(--text);
+    border-radius: 2px;
+    padding: 0 3px;
+  }
+
+  .ps-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.15s;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 2px;
+  }
+
+  .ps-link:hover { color: var(--accent); border-color: rgba(255,59,92,0.3); }
+
+  .ps-link-icon {
+    font-style: normal;
+    font-size: 12px;
+  }
+
+  .ps-sol-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .ps-sol-desc {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted2);
+    margin-bottom: 14px;
+  }
+
+  .ps-sol-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    padding: 5px 12px;
+    background: rgba(6,214,160,0.08);
+    border: 1px solid rgba(6,214,160,0.2);
+    border-radius: 4px;
+    color: var(--green);
+    letter-spacing: 0.05em;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .ps-row {
+      grid-template-columns: 1fr;
+    }
+    .ps-arrow {
+      display: none;
+    }
+    .ps-problem {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+  }
+
+  /* ===== PROBLEM / SOLUTION STACK ===== */
+  .problem-section {
+    margin-bottom: 56px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ===== TABS ===== */
+  .tabs-wrap {
+    margin-bottom: 4px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+    width: fit-content;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--text); }
+
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border-bright);
+  }
+
+  .tab-number {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 3px;
+    font-size: 10px;
+    margin-right: 6px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .tab.active .tab-number { background: rgba(255,59,92,0.2); color: var(--accent); }
+
+  /* ===== PANELS ===== */
+  .panel {
+    display: none;
+    animation: fadeUp 0.25s ease;
+  }
+
+  .panel.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== TOOL LAYOUT ===== */
+  .tool-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .tool-layout { grid-template-columns: 1fr; }
+  }
+
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .tool-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .tool-card-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+
+  .tool-badge {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .badge-red { background: rgba(255,59,92,0.12); color: var(--accent); border: 1px solid rgba(255,59,92,0.2); }
+  .badge-orange { background: rgba(255,107,53,0.12); color: var(--accent2); border: 1px solid rgba(255,107,53,0.2); }
+  .badge-green { background: rgba(6,214,160,0.12); color: var(--green); border: 1px solid rgba(6,214,160,0.2); }
+  .badge-blue { background: rgba(67,97,238,0.12); color: var(--blue); border: 1px solid rgba(67,97,238,0.2); }
+  .badge-yellow { background: rgba(255,217,61,0.12); color: var(--accent3); border: 1px solid rgba(255,217,61,0.2); }
+
+  .tool-card-body { padding: 20px; }
+
+  /* ===== INPUTS ===== */
+  label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  textarea, input[type="text"], select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus, input[type="text"]:focus {
+    border-color: rgba(255,59,92,0.4);
+  }
+
+  textarea { min-height: 120px; }
+
+  .input-group { margin-bottom: 16px; }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #ff1a3c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(255,59,92,0.3);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--muted2);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover { border-color: var(--border-bright); color: var(--text); }
+
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* ===== OUTPUT ===== */
+  .output-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    min-height: 120px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .output-box.loading::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 1.5s linear infinite;
+  }
+
+  @keyframes scan {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+
+  .output-empty {
+    color: var(--muted);
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  /* ===== LISTING OUTPUT STYLES ===== */
+  .listing-output .listing-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .listing-output .listing-price {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 12px;
+  }
+
+  .listing-output .listing-desc {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted2);
+    margin-bottom: 12px;
+  }
+
+  .listing-output .listing-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .tag-chip {
+    padding: 3px 10px;
+    background: rgba(67,97,238,0.12);
+    border: 1px solid rgba(67,97,238,0.2);
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--blue);
+    letter-spacing: 0.05em;
+  }
+
+  .listing-output .listing-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .meta-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+  }
+
+  .meta-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+  .meta-value { font-size: 12px; color: var(--text); }
+
+  /* ===== SCAM ANALYZER ===== */
+  .scam-result {
+    margin-top: 16px;
+  }
+
+  .risk-meter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  .risk-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .risk-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .risk-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .risk-value {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 900;
+    min-width: 48px;
+    text-align: right;
+  }
+
+  .risk-tag {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .risk-low { color: var(--green); background: rgba(6,214,160,0.1); }
+  .risk-med { color: var(--accent3); background: rgba(255,217,61,0.1); }
+  .risk-high { color: var(--accent); background: rgba(255,59,92,0.1); }
+
+  .scam-patterns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pattern-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--muted2);
+  }
+
+  .pattern-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ===== BACK OFFICE ===== */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 40px; height: 40px;
+    border-radius: 0 8px 0 40px;
+    opacity: 0.15;
+  }
+
+  .metric-card.c1::after { background: var(--accent); }
+  .metric-card.c2::after { background: var(--green); }
+  .metric-card.c3::after { background: var(--accent2); }
+  .metric-card.c4::after { background: var(--blue); }
+
+  .metric-val {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .metric-card.c1 .metric-val { color: var(--accent); }
+  .metric-card.c2 .metric-val { color: var(--green); }
+  .metric-card.c3 .metric-val { color: var(--accent2); }
+  .metric-card.c4 .metric-val { color: var(--blue); }
+
+  .metric-name { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .workflow-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .workflow-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .workflow-item:hover {
+    border-color: var(--border-bright);
+    background: var(--surface2);
+  }
+
+  .workflow-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .workflow-info { flex: 1; }
+  .workflow-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .workflow-desc { font-size: 11px; color: var(--muted); }
+
+  .workflow-status {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ===== DIVIDER ===== */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* ===== FULL WIDTH CARD ===== */
+  .full-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 16px;
+  }
+
+  .full-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .full-card-body { padding: 20px; }
+
+  /* ===== SPLIT ROW ===== */
+  .split-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .split-row > *:first-child { flex: 1; }
+
+  /* ===== COPY BUTTON ===== */
+  .copy-btn {
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .copy-btn:hover { color: var(--text); border-color: var(--border-bright); }
+  .copy-btn.copied { color: var(--green); border-color: rgba(6,214,160,0.3); }
+
+  /* ===== ATTRIBUTION ===== */
+  .attribution {
+    text-align: center;
+    padding: 32px 0 0;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== LOADING SPINNER ===== */
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== CONFIDENCE CHIP ===== */
+  .confidence-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .conf-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--muted2);
+  }
+
+  .conf-bar {
+    width: 40px;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .conf-fill { height: 100%; border-radius: 2px; background: var(--green); }
+
+  /* ===== FOOTER RULE ===== */
+  .footer-rule {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0 0;
+  }
+
+  /* ===== CHART PLACEHOLDER ===== */
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 40px;
+    margin-top: 8px;
+  }
+
+  .bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    background: rgba(255,59,92,0.3);
+    transition: height 0.4s ease;
+  }
+
+  .bar.hi { background: var(--accent); }
+
+  /* ===== ANIMATIONS ===== */
+  .fade-in {
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .slide-in {
+    animation: slideIn 0.3s ease forwards;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* scroll */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+  /* ===== SCAM CONVERSATION INPUT ===== */
+  .msg-bubble {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  .msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .msg-text {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 0 8px 8px 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--muted2);
+    max-width: 85%;
+  }
+
+  .msg-bubble.them .msg-text {
+    border-radius: 8px 0 8px 8px;
+    border-color: rgba(255,59,92,0.2);
+    background: rgba(255,59,92,0.06);
+  }
+
+  .flagged-highlight {
+    background: rgba(255,59,92,0.15);
+    border: 1px solid rgba(255,59,92,0.3);
+    border-radius: 3px;
+    padding: 1px 4px;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-block">
+      <div class="logo">Seller <span>Copilot</span></div>
+      <div class="tagline">AI-native tooling for Whatnot sellers</div>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      Live Demo
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Built around 3 problems from the Whatnot engineering blog</div>
+    <h1>The AI Layer<br>Whatnot <em>Sellers</em><br>Need Now</h1>
+    <p class="hero-desc">
+      I read your engineering blog. Found three specific problems your own team called out publicly. Built working tools for each one.
+    </p>
+  </div>
+
+  <!-- PROBLEM/SOLUTION SECTION -->
+  <div class="problem-section">
+    <div class="section-label">What your team said · What this builds</div>
+
+    <div class="ps-stack">
+
+      <!-- Problem 1 -->
+      <div class="ps-row">
+        <div class="ps-problem">
+          <div class="ps-label problem-label">
+            <span class="ps-num">01</span>
+            What your team said
+          </div>
+          <blockquote class="ps-quote">
+            "Our buyer and seller communities tell us what's hard, whether it's discovering the right shows, <mark>managing complex back-office workflows</mark>, or scaling a seller business."
+          </blockquote>
+          <a class="ps-link" href="https://medium.com/whatnot-engineering/whatnot-engineerings-2025-blog-highlights-e7a63dbd0057" target="_blank">
+            <span class="ps-link-icon">↗</span>
+            Whatnot Engineering · 2025 Blog Highlights
+          </a>
+        </div>
+        <div class="ps-arrow">→</div>
+        <div class="ps-solution">
+          <div class="ps-label solution-label">
+            What this builds
+          </div>
+          <div class="ps-sol-title">Back Office AI Automation</div>
+          <div class="ps-sol-desc">Four AI workflows that handle repricing, shipping, buyer messaging, and inventory — the exact back-office tasks your sellers said were hard. All from a single dashboard.</div>
+          <div class="ps-sol-tab">Tab 3 → Back Office</div>
+        </div>
+      </div>
+
+      <!-- Problem 2 -->
+      <div class="ps-row">
+        <div class="ps-problem">
+          <div class="ps-label problem-label">
+            <span class="ps-num">02</span>
+            What your team said
+          </div>
+          <blockquote class="ps-quote">
+            "Every day, sellers on Whatnot create more than <mark>5 million product listings</mark> to share what they love with the world."
+          </blockquote>
+          <a class="ps-link" href="https://medium.com/whatnot-engineering/whatnot-engineerings-2025-blog-highlights-e7a63dbd0057" target="_blank">
+            <span class="ps-link-icon">↗</span>
+            Whatnot Engineering · 2025 Blog Highlights
+          </a>
+        </div>
+        <div class="ps-arrow">→</div>
+        <div class="ps-solution">
+          <div class="ps-label solution-label">
+            What this builds
+          </div>
+          <div class="ps-sol-title">AI Listing Generator</div>
+          <div class="ps-sol-desc">Sellers describe their item and get an optimized listing instantly — title, price range, description, search tags, best time to list. No AI assistance exists inside Whatnot today for listing quality.</div>
+          <div class="ps-sol-tab">Tab 1 → Listing Generator</div>
+        </div>
+      </div>
+
+      <!-- Problem 3 -->
+      <div class="ps-row">
+        <div class="ps-problem">
+          <div class="ps-label problem-label">
+            <span class="ps-num">03</span>
+            What your team said
+          </div>
+          <blockquote class="ps-quote">
+            "Fighting fraud and other attacks is an ongoing battle and <mark>new tactics are often used to circumvent our checks</mark>... messaging is usually tweaked very often."
+          </blockquote>
+          <a class="ps-link" href="https://medium.com/whatnot-engineering/how-whatnot-utilizes-generative-ai-to-enhance-trust-and-safety-c7968eb6315e" target="_blank">
+            <span class="ps-link-icon">↗</span>
+            Whatnot Engineering · Trust & Safety with GenAI
+          </a>
+        </div>
+        <div class="ps-arrow">→</div>
+        <div class="ps-solution">
+          <div class="ps-label solution-label">
+            What this builds
+          </div>
+          <div class="ps-sol-title">Scam Conversation Analyzer</div>
+          <div class="ps-sol-desc">Sellers paste a suspicious DM and get a scam likelihood score, every red flag flagged with severity, and a suggested safe reply. Mirrors your T&S LLM architecture but surfaces it to sellers directly.</div>
+          <div class="ps-sol-tab">Tab 2 → Scam Analyzer</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="section-label">Three Tools. Three Solutions.</div>
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(0)">
+        <span class="tab-number">1</span>Listing Generator
+      </button>
+      <button class="tab" onclick="switchTab(1)">
+        <span class="tab-number">2</span>Scam Analyzer
+      </button>
+      <button class="tab" onclick="switchTab(2)">
+        <span class="tab-number">3</span>Back Office
+      </button>
+    </div>
+  </div>
+
+  <!-- PANEL 1: LISTING GENERATOR -->
+  <div class="panel active" id="panel-0">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-card-title">Item Details</span>
+          <span class="tool-badge badge-orange">Solves Problem #2</span>
+        </div>
+        <div class="tool-card-body">
+          <div class="input-group">
+            <label>Item Description (what you're selling)</label>
+            <textarea id="listing-input" placeholder="e.g. 1998 Charizard holo Pokemon card, PSA graded 8, minor edge wear, original set base edition..."></textarea>
+          </div>
+          <div class="input-group">
+            <label>Category</label>
+            <select id="listing-category">
+              <option>Trading Cards</option>
+              <option>Sneakers</option>
+              <option>Vintage Clothing</option>
+              <option>Comics & Manga</option>
+              <option>Electronics</option>
+              <option>Collectibles</option>
+              <option>Sports Memorabilia</option>
+              <option>Jewelry</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Condition</label>
+            <select id="listing-condition">
+              <option>Mint / Near Mint</option>
+              <option>Excellent</option>
+              <option>Very Good</option>
+              <option>Good</option>
+              <option>Fair / Played</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-full" id="listing-btn" onclick="generateListing()">
+            <span id="listing-btn-icon">✦</span>
+            <span id="listing-btn-text">Generate Listing</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="tool-card-title">Generated Listing</span>
+            <span id="listing-quality-badge" style="display:none;" class="tool-badge badge-green">High Quality</span>
+          </div>
+          <button class="copy-btn" id="listing-copy-btn" onclick="copyListing()" style="display:none;">Copy</button>
+        </div>
+        <div class="tool-card-body">
+          <div class="output-box" id="listing-output">
+            <span class="output-empty">Your AI-generated listing will appear here. Includes optimized title, description, suggested price range, search tags, and category placement.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: SCAM ANALYZER -->
+  <div class="panel" id="panel-1">
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-card-title">Conversation Input</span>
+          <span class="tool-badge badge-red">Solves Problem #3</span>
+        </div>
+        <div class="tool-card-body">
+          <div class="input-group">
+            <label>Paste suspicious conversation</label>
+            <textarea id="scam-input" style="min-height:180px;" placeholder="Paste a conversation from your DMs here. The analyzer will look for scam patterns, off-platform transaction attempts, social engineering, and policy violations.
+
+Example:
+User: hey love your cards
+User: i have a buyer for that charizard
+User: can we do the deal on venmo? faster and no fees
+Me: I only sell on Whatnot
+User: ill pay 20% more if we go direct"></textarea>
+          </div>
+          <div class="input-group">
+            <label>Your account age (helps calibrate risk)</label>
+            <select id="account-age">
+              <option>Less than 30 days</option>
+              <option>1-3 months</option>
+              <option>3-12 months</option>
+              <option>1+ years</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-full" id="scam-btn" onclick="analyzeScam()">
+            <span id="scam-btn-icon">🔍</span>
+            <span id="scam-btn-text">Analyze for Scams</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-card-title">Risk Assessment</span>
+        </div>
+        <div class="tool-card-body">
+          <div id="scam-output">
+            <div class="output-box">
+              <span class="output-empty">Paste a conversation and run the analysis. The AI will score scam likelihood, identify specific red flags, and recommend actions — mirroring Whatnot's own T&S architecture but with an external eval layer.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: BACK OFFICE -->
+  <div class="panel" id="panel-2">
+    <div class="metrics-row">
+      <div class="metric-card c1">
+        <div class="metric-val">47</div>
+        <div class="metric-name">Active Listings</div>
+        <div class="mini-chart">
+          <div class="bar" style="height:40%"></div>
+          <div class="bar" style="height:55%"></div>
+          <div class="bar" style="height:45%"></div>
+          <div class="bar" style="height:70%"></div>
+          <div class="bar" style="height:60%"></div>
+          <div class="bar hi" style="height:90%"></div>
+          <div class="bar" style="height:75%"></div>
+        </div>
+      </div>
+      <div class="metric-card c2">
+        <div class="metric-val">$2.4k</div>
+        <div class="metric-name">GMV This Week</div>
+        <div class="mini-chart">
+          <div class="bar" style="height:30%;background:rgba(6,214,160,0.3)"></div>
+          <div class="bar" style="height:50%;background:rgba(6,214,160,0.3)"></div>
+          <div class="bar" style="height:65%;background:rgba(6,214,160,0.3)"></div>
+          <div class="bar" style="height:55%;background:rgba(6,214,160,0.3)"></div>
+          <div class="bar" style="height:80%;background:rgba(6,214,160,0.3)"></div>
+          <div class="bar" style="height:70%;background:rgba(6,214,160,0.3)"></div>
+          <div class="bar" style="height:95%;background:var(--green)"></div>
+        </div>
+      </div>
+      <div class="metric-card c3">
+        <div class="metric-val">3</div>
+        <div class="metric-name">Pending Ships</div>
+        <div class="mini-chart">
+          <div class="bar" style="height:80%;background:rgba(255,107,53,0.3)"></div>
+          <div class="bar" style="height:40%;background:rgba(255,107,53,0.3)"></div>
+          <div class="bar" style="height:90%;background:rgba(255,107,53,0.3)"></div>
+          <div class="bar" style="height:30%;background:rgba(255,107,53,0.3)"></div>
+          <div class="bar" style="height:60%;background:rgba(255,107,53,0.3)"></div>
+          <div class="bar" style="height:50%;background:rgba(255,107,53,0.3)"></div>
+          <div class="bar" style="height:35%;background:var(--accent2)"></div>
+        </div>
+      </div>
+      <div class="metric-card c4">
+        <div class="metric-val">98%</div>
+        <div class="metric-name">Seller Rating</div>
+        <div class="mini-chart">
+          <div class="bar" style="height:85%;background:rgba(67,97,238,0.3)"></div>
+          <div class="bar" style="height:90%;background:rgba(67,97,238,0.3)"></div>
+          <div class="bar" style="height:88%;background:rgba(67,97,238,0.3)"></div>
+          <div class="bar" style="height:95%;background:rgba(67,97,238,0.3)"></div>
+          <div class="bar" style="height:92%;background:rgba(67,97,238,0.3)"></div>
+          <div class="bar" style="height:97%;background:rgba(67,97,238,0.3)"></div>
+          <div class="bar" style="height:98%;background:var(--blue)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-layout">
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-card-title">AI Workflow Automation</span>
+          <span class="tool-badge badge-red">Solves Problem #1</span>
+        </div>
+        <div class="tool-card-body">
+          <div class="workflow-items">
+            <div class="workflow-item" onclick="runWorkflow('pricing')">
+              <div class="workflow-icon" style="background:rgba(255,59,92,0.1)">📊</div>
+              <div class="workflow-info">
+                <div class="workflow-name">Smart Repricing</div>
+                <div class="workflow-desc">Analyze market comps and suggest optimal price adjustments</div>
+              </div>
+              <span class="workflow-status badge-red">Run</span>
+            </div>
+            <div class="workflow-item" onclick="runWorkflow('shipping')">
+              <div class="workflow-icon" style="background:rgba(255,107,53,0.1)">📦</div>
+              <div class="workflow-info">
+                <div class="workflow-name">Shipping Optimizer</div>
+                <div class="workflow-desc">Auto-select carrier and generate packing instructions</div>
+              </div>
+              <span class="workflow-status badge-orange">Run</span>
+            </div>
+            <div class="workflow-item" onclick="runWorkflow('buyer')">
+              <div class="workflow-icon" style="background:rgba(6,214,160,0.1)">💬</div>
+              <div class="workflow-info">
+                <div class="workflow-name">Buyer Message Draft</div>
+                <div class="workflow-desc">Draft professional responses to common buyer questions</div>
+              </div>
+              <span class="workflow-status badge-green">Run</span>
+            </div>
+            <div class="workflow-item" onclick="runWorkflow('inventory')">
+              <div class="workflow-icon" style="background:rgba(67,97,238,0.1)">🗂️</div>
+              <div class="workflow-info">
+                <div class="workflow-name">Inventory Audit</div>
+                <div class="workflow-desc">Identify slow movers and suggest bundle or discount strategies</div>
+              </div>
+              <span class="workflow-status badge-blue">Run</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-card-title">Workflow Output</span>
+        </div>
+        <div class="tool-card-body">
+          <div class="output-box" id="workflow-output" style="min-height:280px;">
+            <span class="output-empty">Click any workflow on the left to run it. The AI will analyze your seller context and generate actionable recommendations.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="footer-rule">
+  <div class="attribution">Built by Jafar</div>
+
+</div>
+
+<script>
+const API_KEY = "YOUR_API_KEY_HERE";
+
+// ===== TAB SWITCHING =====
+function switchTab(idx) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+}
+
+// ===== LISTING GENERATOR =====
+async function generateListing() {
+  const input = document.getElementById('listing-input').value.trim();
+  if (!input) { alert('Please describe your item first.'); return; }
+
+  const btn = document.getElementById('listing-btn');
+  const btnText = document.getElementById('listing-btn-text');
+  const btnIcon = document.getElementById('listing-btn-icon');
+  const output = document.getElementById('listing-output');
+
+  btn.disabled = true;
+  btnIcon.innerHTML = '<div class="spinner"></div>';
+  btnText.textContent = 'Generating...';
+  output.className = 'output-box loading';
+  output.innerHTML = '<span class="output-empty">Analyzing item, researching market comps, writing optimized copy...</span>';
+
+  const category = document.getElementById('listing-category').value;
+  const condition = document.getElementById('listing-condition').value;
+
+  const prompt = `You are an expert Whatnot marketplace listing specialist. Create a high-converting product listing for the item described below.
+
+Item: ${input}
+Category: ${category}
+Condition: ${condition}
+
+Return ONLY valid JSON (no markdown, no backticks) with this exact structure:
+{
+  "title": "optimized listing title under 80 chars, specific and searchable",
+  "price_low": 0,
+  "price_high": 0,
+  "description": "2-3 sentence compelling description that sells the item, mentions condition and key details",
+  "tags": ["tag1","tag2","tag3","tag4","tag5"],
+  "category_tip": "one sentence tip about this category on Whatnot",
+  "condition_note": "brief honest condition disclosure",
+  "best_time": "best time to list this on Whatnot for max visibility",
+  "quality_score": 0
+}
+
+price_low and price_high should be realistic market prices in USD as numbers.
+quality_score should be 0-100 based on how complete the listing info is.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content[0].text.trim().replace(/```json|```/g, '').trim();
+    const listing = JSON.parse(text);
+
+    output.className = 'output-box listing-output fade-in';
+    output.innerHTML = `
+      <div class="listing-title">${listing.title}</div>
+      <div class="listing-price">$${listing.price_low} — $${listing.price_high}</div>
+      <div class="listing-desc">${listing.description}</div>
+      <div class="listing-tags">
+        ${listing.tags.map(t => `<span class="tag-chip">#${t}</span>`).join('')}
+      </div>
+      <div class="divider"></div>
+      <div class="listing-meta">
+        <div class="meta-item">
+          <div class="meta-label">Condition Note</div>
+          <div class="meta-value">${listing.condition_note}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Best Time to List</div>
+          <div class="meta-value">${listing.best_time}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Category Tip</div>
+          <div class="meta-value" style="font-size:11px;">${listing.category_tip}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Listing Score</div>
+          <div class="meta-value" style="color:var(--green)">${listing.quality_score}/100</div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('listing-quality-badge').style.display = 'inline-flex';
+    document.getElementById('listing-copy-btn').style.display = 'block';
+    window._lastListing = listing;
+
+  } catch(e) {
+    output.className = 'output-box';
+    output.innerHTML = `<span style="color:var(--accent)">Error: ${e.message}. Check console for details.</span>`;
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btnIcon.innerHTML = '✦';
+  btnText.textContent = 'Generate Listing';
+}
+
+// ===== SCAM ANALYZER =====
+async function analyzeScam() {
+  const input = document.getElementById('scam-input').value.trim();
+  if (!input) { alert('Please paste a conversation first.'); return; }
+
+  const btn = document.getElementById('scam-btn');
+  const btnText = document.getElementById('scam-btn-text');
+  const btnIcon = document.getElementById('scam-btn-icon');
+  const output = document.getElementById('scam-output');
+  const accountAge = document.getElementById('account-age').value;
+
+  btn.disabled = true;
+  btnIcon.innerHTML = '<div class="spinner"></div>';
+  btnText.textContent = 'Analyzing...';
+  output.innerHTML = '<div class="output-box loading"><span class="output-empty">Scanning for patterns, analyzing intent, cross-referencing known scam tactics...</span></div>';
+
+  const prompt = `You are Whatnot's trust and safety AI system. Analyze this conversation for scam patterns, policy violations, and social engineering attempts.
+
+Account age: ${accountAge}
+Conversation:
+${input}
+
+Return ONLY valid JSON (no markdown, no backticks):
+{
+  "scam_likelihood": 0.0,
+  "risk_level": "low|medium|high",
+  "flags": [
+    {"type": "flag type", "description": "what you found", "severity": "low|medium|high"}
+  ],
+  "patterns_detected": ["pattern1", "pattern2"],
+  "recommended_action": "what the seller should do",
+  "explanation": "2-3 sentence plain English summary of the assessment",
+  "safe_response": "suggested reply to send if this is suspicious"
+}
+
+scam_likelihood is 0.0 to 1.0. Be accurate and specific. Flag off-platform transaction requests, urgency tactics, personal info requests, fake giveaway claims.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content[0].text.trim().replace(/```json|```/g, '').trim();
+    const result = JSON.parse(text);
+
+    const likelihood = Math.round(result.scam_likelihood * 100);
+    const riskColor = result.risk_level === 'high' ? 'var(--accent)' : result.risk_level === 'medium' ? 'var(--accent3)' : 'var(--green)';
+    const riskClass = result.risk_level === 'high' ? 'risk-high' : result.risk_level === 'medium' ? 'risk-med' : 'risk-low';
+
+    output.innerHTML = `
+      <div class="scam-result fade-in">
+        <div class="risk-meter">
+          <div>
+            <div class="risk-label">Scam Likelihood</div>
+          </div>
+          <div class="risk-bar-wrap">
+            <div class="risk-bar" style="width:${likelihood}%; background:${riskColor}"></div>
+          </div>
+          <div class="risk-value" style="color:${riskColor}">${likelihood}%</div>
+          <div class="risk-tag ${riskClass}">${result.risk_level}</div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Assessment</div>
+          <div style="font-size:12px;line-height:1.7;color:var(--muted2);">${result.explanation}</div>
+        </div>
+
+        ${result.flags.length > 0 ? `
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Red Flags Detected (${result.flags.length})</div>
+          <div class="scam-patterns">
+            ${result.flags.map(f => `
+              <div class="pattern-item">
+                <span class="pattern-icon">${f.severity === 'high' ? '🚨' : f.severity === 'medium' ? '⚠️' : 'ℹ️'}</span>
+                <div>
+                  <div style="font-size:11px;color:var(--text);font-weight:600;margin-bottom:2px;">${f.type}</div>
+                  <div>${f.description}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Recommended Action</div>
+          <div style="font-size:12px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);">${result.recommended_action}</div>
+        </div>
+
+        ${result.safe_response ? `
+        <div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Suggested Reply</div>
+          <div style="font-size:12px;padding:10px 14px;background:rgba(6,214,160,0.05);border:1px solid rgba(6,214,160,0.15);border-radius:5px;color:var(--green);font-style:italic;">"${result.safe_response}"</div>
+        </div>
+        ` : ''}
+      </div>
+    `;
+
+  } catch(e) {
+    output.innerHTML = `<div class="output-box"><span style="color:var(--accent)">Error: ${e.message}</span></div>`;
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btnIcon.innerHTML = '🔍';
+  btnText.textContent = 'Analyze for Scams';
+}
+
+// ===== BACK OFFICE WORKFLOWS =====
+async function runWorkflow(type) {
+  const output = document.getElementById('workflow-output');
+  output.className = 'output-box loading';
+  output.innerHTML = '<span class="output-empty">Running workflow...</span>';
+
+  const prompts = {
+    pricing: `You are a Whatnot marketplace pricing analyst. A seller has 47 active listings across trading cards, sneakers, and collectibles. Their GMV this week is $2,400 and they have a 98% seller rating.
+
+Generate a practical repricing strategy. Return ONLY valid JSON:
+{
+  "strategy": "brief strategy name",
+  "summary": "2-3 sentence overview",
+  "actions": [
+    {"item_type": "type", "current_avg": "$X", "suggested_avg": "$X", "reason": "why"}
+  ],
+  "expected_impact": "expected GMV change",
+  "tip": "one advanced pricing tip for this seller profile"
+}`,
+    shipping: `You are a Whatnot fulfillment specialist. A seller has 3 pending shipments: a PSA graded card, a pair of sneakers, and a vintage jacket.
+
+Generate shipping instructions. Return ONLY valid JSON:
+{
+  "summary": "brief overview",
+  "shipments": [
+    {"item": "item name", "carrier": "best carrier", "box_size": "recommended size", "packing_tip": "specific tip", "estimated_cost": "$X", "delivery_days": X}
+  ],
+  "time_saved": "estimated time saved vs manual lookup",
+  "pro_tip": "one shipping pro tip"
+}`,
+    buyer: `You are a Whatnot seller communications specialist. Draft 3 template responses for common buyer situations.
+
+Return ONLY valid JSON:
+{
+  "templates": [
+    {"situation": "situation description", "tone": "tone used", "message": "full draft message"},
+    {"situation": "situation description", "tone": "tone used", "message": "full draft message"},
+    {"situation": "situation description", "tone": "tone used", "message": "full draft message"}
+  ],
+  "tip": "one communication tip that builds repeat buyers"
+}`,
+    inventory: `You are a Whatnot inventory optimization specialist. A seller has 47 listings, $2,400 weekly GMV, and a 98% rating. Some items have been listed for 30+ days without selling.
+
+Return ONLY valid JSON:
+{
+  "summary": "brief assessment",
+  "slow_movers": [
+    {"item_type": "type", "days_listed": X, "strategy": "bundle|discount|relist|auction", "reason": "why this strategy"}
+  ],
+  "bundle_ideas": ["bundle idea 1", "bundle idea 2"],
+  "auction_tip": "when to use auction vs fixed price on Whatnot",
+  "expected_clearance": "% of slow inventory cleared in 2 weeks"
+}`
+  };
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompts[type] }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content[0].text.trim().replace(/```json|```/g, '').trim();
+    const result = JSON.parse(text);
+
+    let html = '';
+
+    if (type === 'pricing') {
+      html = `
+        <div class="fade-in">
+          <div style="margin-bottom:14px;">
+            <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--accent);margin-bottom:6px;">${result.strategy}</div>
+            <div style="font-size:12px;line-height:1.7;color:var(--muted2);">${result.summary}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+            ${result.actions.map(a => `
+              <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;">
+                <div>
+                  <div style="font-size:11px;color:var(--text);font-weight:600;">${a.item_type}</div>
+                  <div style="font-size:10px;color:var(--muted);">${a.reason}</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="font-size:10px;color:var(--muted);">Current</div>
+                  <div style="font-size:13px;color:var(--muted2);">${a.current_avg}</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="font-size:10px;color:var(--muted);">Suggested</div>
+                  <div style="font-size:13px;color:var(--green);font-weight:700;">${a.suggested_avg}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="padding:10px 14px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);border-radius:5px;font-size:11px;color:var(--green);">Expected: ${result.expected_impact}</div>
+          <div style="margin-top:10px;font-size:11px;color:var(--muted2);font-style:italic;">💡 ${result.tip}</div>
+        </div>`;
+    } else if (type === 'shipping') {
+      html = `
+        <div class="fade-in">
+          <div style="margin-bottom:14px;font-size:12px;line-height:1.7;color:var(--muted2);">${result.summary}</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+            ${result.shipments.map(s => `
+              <div style="padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <div style="font-size:12px;font-weight:600;color:var(--text);">${s.item}</div>
+                  <div style="font-size:12px;color:var(--accent2);">${s.estimated_cost} · ${s.delivery_days}d</div>
+                </div>
+                <div style="font-size:11px;color:var(--muted2);margin-bottom:4px;">${s.carrier} · ${s.box_size}</div>
+                <div style="font-size:11px;color:var(--muted);">${s.packing_tip}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="font-size:11px;color:var(--muted2);font-style:italic;">💡 ${result.pro_tip}</div>
+        </div>`;
+    } else if (type === 'buyer') {
+      html = `
+        <div class="fade-in">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+            ${result.templates.map(t => `
+              <div style="padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <div style="font-size:11px;font-weight:600;color:var(--text);">${t.situation}</div>
+                  <span class="tool-badge badge-blue">${t.tone}</span>
+                </div>
+                <div style="font-size:11px;line-height:1.6;color:var(--muted2);font-style:italic;">"${t.message}"</div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="font-size:11px;color:var(--muted2);font-style:italic;">💡 ${result.tip}</div>
+        </div>`;
+    } else if (type === 'inventory') {
+      html = `
+        <div class="fade-in">
+          <div style="margin-bottom:14px;font-size:12px;line-height:1.7;color:var(--muted2);">${result.summary}</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+            ${result.slow_movers.map(s => `
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;">
+                <div style="flex:1;">
+                  <div style="font-size:11px;font-weight:600;color:var(--text);">${s.item_type} · ${s.days_listed} days</div>
+                  <div style="font-size:10px;color:var(--muted);">${s.reason}</div>
+                </div>
+                <span class="tool-badge ${s.strategy === 'auction' ? 'badge-red' : s.strategy === 'bundle' ? 'badge-blue' : s.strategy === 'discount' ? 'badge-orange' : 'badge-green'}">${s.strategy}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Bundle Ideas</div>
+            ${result.bundle_ideas.map(b => `<div style="font-size:11px;color:var(--muted2);padding:4px 0;border-bottom:1px solid var(--border);">→ ${b}</div>`).join('')}
+          </div>
+          <div style="padding:10px 14px;background:rgba(67,97,238,0.06);border:1px solid rgba(67,97,238,0.15);border-radius:5px;font-size:11px;color:var(--blue);">Expected clearance: ${result.expected_clearance}</div>
+        </div>`;
+    }
+
+    output.className = 'output-box';
+    output.style.minHeight = '280px';
+    output.innerHTML = html;
+
+  } catch(e) {
+    output.className = 'output-box';
+    output.innerHTML = `<span style="color:var(--accent)">Error: ${e.message}</span>`;
+    console.error(e);
+  }
+}
+
+// ===== COPY LISTING =====
+function copyListing() {
+  if (!window._lastListing) return;
+  const l = window._lastListing;
+  const text = `${l.title}\n\nPrice: $${l.price_low} - $${l.price_high}\n\n${l.description}\n\nCondition: ${l.condition_note}\n\nTags: ${l.tags.map(t => '#' + t).join(' ')}`;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('listing-copy-btn');
+  btn.textContent = 'Copied!';
+  btn.className = 'copy-btn copied';
+  setTimeout(() => { btn.textContent = 'Copy'; btn.className = 'copy-btn'; }, 2000);
+}
+</script>
+</body>
+</html>
